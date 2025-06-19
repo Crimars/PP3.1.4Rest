@@ -10,11 +10,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
+import ru.kata.spring.boot_security.demo.repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -24,13 +23,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public UserServiceImpl(UserRepository userRepository,
+                           BCryptPasswordEncoder bCryptPasswordEncoder,
+                           RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.roleRepository = roleRepository;
     }
+
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -68,9 +71,25 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    @Transactional
     public boolean createUser(User user) {
-          return saveUser(user);
+        if (userRepository.findFirstByUsername(user.getUsername()) != null) {
+            return false;
+        }
+
+        Set<Role> dbRoles = new HashSet<>();
+        for (Role role : user.getRoles()) {
+            Role dbRole = roleRepository.findByName(role.getName());
+            if (dbRole == null) {
+
+                throw new IllegalArgumentException("Role not found: " + role.getName());
+            }
+            dbRoles.add(dbRole);
+        }
+
+        user.setRoles(dbRoles);
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+        return true;
     }
 
     @Override
@@ -102,7 +121,13 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                         existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
                     }
 
-                    existingUser.setRoles(user.getRoles());
+                    // Обновляем роли, берём из БД по имени
+                    Set<Role> dbRoles = user.getRoles().stream()
+                            .map(role -> roleRepository.findByName(role.getName()))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+
+                    existingUser.setRoles(dbRoles);
 
                     userRepository.save(existingUser);
                     return true;

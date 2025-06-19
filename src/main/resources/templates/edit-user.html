@@ -15,10 +15,15 @@
         <div class="mb-3"><label>Last Name</label><input class="form-control" id="lastName" required></div>
         <div class="mb-3"><label>Age</label><input type="number" class="form-control" id="age" required></div>
         <div class="mb-3"><label>Email</label><input class="form-control" id="email" required></div>
+        <div class="mb-3">
+            <label>Roles</label>
+            <div id="roleCheckboxes"></div>
+        </div>
         <div class="mb-3"><label>Password</label><input type="password" class="form-control" id="password"></div>
         <button type="submit" class="btn btn-primary">Save</button>
     </form>
 </div>
+
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('id');
@@ -30,29 +35,57 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
         const user = await loadUser();
+
         document.getElementById('userId').value = user.id;
         document.getElementById('firstName').value = user.firstName;
         document.getElementById('lastName').value = user.lastName;
         document.getElementById('age').value = user.age;
         document.getElementById('email').value = user.email;
+
+        const roleContainer = document.getElementById('roleCheckboxes');
+        const rolesRes = await fetch('/api/admin/roles');
+        const roles = await rolesRes.json();
+
+        roles.forEach(role => {
+            const checkbox = document.createElement('div');
+            checkbox.className = 'form-check';
+
+            checkbox.innerHTML = `
+                <input class="form-check-input" type="checkbox" value="${role.name}" id="role-${role.name}"
+                    ${user.roles.some(r => r.name === role.name) ? 'checked' : ''}>
+                <label class="form-check-label" for="role-${role.name}">${role.name}</label>
+            `;
+            roleContainer.appendChild(checkbox);
+        });
     });
 
     document.getElementById('editForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const selectedRoles = Array.from(document.querySelectorAll('#roleCheckboxes input:checked')).map(cb => ({ name: cb.value }));
+
         const user = {
             id: +document.getElementById('userId').value,
             firstName: document.getElementById('firstName').value,
             lastName: document.getElementById('lastName').value,
             age: +document.getElementById('age').value,
             email: document.getElementById('email').value,
-            password: document.getElementById('password').value
+            password: document.getElementById('password').value,
+            roles: selectedRoles
         };
-        await fetch(`/api/admin/users/${user.id}`, {
+
+        const response = await fetch(`/api/admin/users/${user.id}`, {
             method: 'PUT',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(user)
         });
-        window.location.href = '/admin';
+
+        if (response.ok) {
+            alert("User updated successfully");
+            window.history.back(); // или window.location.href = '/admin';
+        } else {
+            alert("Failed to update user");
+        }
     });
 </script>
 </body>

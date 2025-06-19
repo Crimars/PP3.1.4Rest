@@ -3,40 +3,144 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>New User</title>
+    <title>Add New User</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"  rel="stylesheet">
+    <style>
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            bottom: 0;
+            left: 0;
+            width: 250px;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 40px 20px;
+        }
+    </style>
 </head>
 <body class="bg-light">
-<div class="container py-4">
-    <h3>Add New User</h3>
-    <form id="createForm">
-        <div class="mb-3"><label>First Name</label><input class="form-control" id="firstName" required></div>
-        <div class="mb-3"><label>Last Name</label><input class="form-control" id="lastName" required></div>
-        <div class="mb-3"><label>Age</label><input type="number" class="form-control" id="age" required></div>
-        <div class="mb-3"><label>Email</label><input class="form-control" id="email" required></div>
-        <div class="mb-3"><label>Password</label><input type="password" class="form-control" id="password" required></div>
-        <button type="submit" class="btn btn-primary">Create</button>
-    </form>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark sticky-top">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">Admin Panel</span>
+        <span class="navbar-text me-auto" sec:authentication="name"></span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-danger">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul class="nav flex-column">
+            <li class="nav-item"><a class="nav-link" th:href="@{/admin}">Admin</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/user}">User</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content w-100">
+        <h3>Add New User</h3>
+
+        <!-- Кнопка открытия модалки -->
+        <button type="button" class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#createUserModal">
+            Create User
+        </button>
+    </div>
 </div>
+
+<!-- Modal Create User -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="createForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="createFirstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="createFirstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createLastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="createLastName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createAge" class="form-label">Age</label>
+                        <input type="number" class="form-control" id="createAge" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="createEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="createPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="createPassword" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Roles</label>
+                        <div id="createRoleCheckboxes">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ROLE_USER" id="role-role_user">
+                                <label class="form-check-label" for="role-role_user">ROLE_USER</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="ROLE_ADMIN" id="role-role_admin">
+                                <label class="form-check-label" for="role-role_admin">ROLE_ADMIN</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     document.getElementById('createForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+
+        const selectedRoles = [];
+        document.querySelectorAll('#createRoleCheckboxes input:checked').forEach(cb => {
+            selectedRoles.push(cb.value);
+        });
+
         const user = {
-            firstName: document.getElementById('firstName').value,
-            lastName: document.getElementById('lastName').value,
-            age: +document.getElementById('age').value,
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value
+            firstName: document.getElementById('createFirstName').value,
+            lastName: document.getElementById('createLastName').value,
+            age: +document.getElementById('createAge').value,
+            email: document.getElementById('createEmail').value,
+            password: document.getElementById('createPassword').value,
+            roles: selectedRoles
         };
-        const res = await fetch('/api/admin/users', {
+
+        const response = await fetch('/api/admin/users', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(user)
         });
-        if (res.ok) {
-            window.location.href = '/admin';
+
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+            loadUsers(); // Обновляем таблицу без перезагрузки
+        } else {
+            alert("Failed to create user");
         }
     });
 </script>
+
 </body>
 </html>

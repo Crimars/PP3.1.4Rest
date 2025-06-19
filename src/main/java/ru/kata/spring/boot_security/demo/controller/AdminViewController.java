@@ -10,4 +10,5 @@ public class AdminViewController {
     public String getAdminPage() {
         return "admin";
     }
+
 }
