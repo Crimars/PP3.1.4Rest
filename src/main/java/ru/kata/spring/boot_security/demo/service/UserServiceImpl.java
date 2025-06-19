@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public Optional<User> getUserById(Long id) {
-        return Optional.empty();
+        return userRepository.findById(id);
     }
 
     public User findUserById(Long id) {
@@ -92,16 +92,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     public boolean updateUser(User user) {
         return userRepository.findById(user.getId())
                 .map(existingUser -> {
-                    if (user.getUsername() != null) {
-                        existingUser.setUsername(user.getUsername());
-                    }
-                    if (user.getPassword() != null) {
-                        existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-                    }
+                    existingUser.setUsername(user.getUsername());
                     existingUser.setFirstName(user.getFirstName());
                     existingUser.setLastName(user.getLastName());
-                    existingUser.setAge(user.getAge());
                     existingUser.setEmail(user.getEmail());
+                    existingUser.setAge(user.getAge());
+
+                    if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                        existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+                    }
+
                     existingUser.setRoles(user.getRoles());
 
                     userRepository.save(existingUser);
