@@ -10,7 +10,7 @@ public class UserDTO {
     private String email;
     private Set<String> roles;
 
-    // Конструктор
+
     public UserDTO(Long id, String firstName, String lastName, Integer age, String email, Set<String> roles) {
         this.id = id;
         this.firstName = firstName;
@@ -20,7 +20,7 @@ public class UserDTO {
         this.roles = roles;
     }
 
-    // Геттеры и сеттеры
+
     public Long getId() {
         return id;
     }
