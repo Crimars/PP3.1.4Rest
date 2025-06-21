@@ -21,8 +21,8 @@
         }
 
         .content {
-            margin-left: 250px; /* Отступ под боковое меню */
-            padding-top: 60px; /* Отступ под шапку */
+            margin-left: 250px;
+            padding-top: 60px;
         }
 
         .nav-link.active {
@@ -71,9 +71,8 @@
         <span class="navbar-brand mb-0 h1">User Panel</span>
         <span class="navbar-text me-auto" sec:authentication="name"></span>
 
-        <!-- Форма выхода -->
+
         <form class="logout-btn" th:action="@{/logout}" method="post">
-            <!-- Убран CSRF токен — если защита отключена -->
             <button type="submit" class="btn btn-danger">Logout</button>
         </form>
     </div>

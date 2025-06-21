@@ -255,10 +255,9 @@
   document.getElementById('createForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    const selectedRoles = [];
-    document.querySelectorAll('#createRoleCheckboxes input:checked').forEach(cb => {
-      selectedRoles.push({ name: cb.value });
-    });
+    const selectedRoles = Array.from(document.querySelectorAll('#createRoleCheckboxes input:checked')).map(cb => ({
+      name: cb.value
+    }));
 
     const user = {
       firstName: document.getElementById('createFirstName').value,
@@ -279,7 +278,7 @@
       bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
       loadUsers();
     } else {
-      alert("Failed to create user");
+      alert("Failed to create user1");
     }
   });
 

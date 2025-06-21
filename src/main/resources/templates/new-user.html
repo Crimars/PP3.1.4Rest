@@ -135,7 +135,7 @@
 
         if (response.ok) {
             bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
-            loadUsers(); // Обновляем таблицу без перезагрузки
+            loadUsers();
         } else {
             alert("Failed to create user");
         }

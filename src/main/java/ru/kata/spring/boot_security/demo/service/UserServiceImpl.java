@@ -121,7 +121,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
                         existingUser.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
                     }
 
-                    // Обновляем роли, берём из БД по имени
+
                     Set<Role> dbRoles = user.getRoles().stream()
                             .map(role -> roleRepository.findByName(role.getName()))
                             .filter(Objects::nonNull)
